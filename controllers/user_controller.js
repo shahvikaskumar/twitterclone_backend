@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const upload = require("../Utility/multer_config");
 const usermodel= mongoose.model('user');
 const tweetmodel= mongoose.model('tweet');
 
@@ -191,16 +190,8 @@ const Usertweets = async (req,res) => {
 //#endregion
 
 //#region Upload user profile picture
-const Userprofilepic =  (req,res) => {
-    upload(req, res, async(err) => {
-        if(err){
-            return res.status(400).json({message:err.message});
-        }
-
-        if(!req.file){
-            return res.status(400).json({message:'No file uploaded'});
-        }
-
+const Userprofilepic = async (req,res) => {
+    
         try{
             const userid = req.params.id;
             const loggedinuserid = req.user._id;
@@ -228,8 +219,7 @@ const Userprofilepic =  (req,res) => {
             console.error(error);
             return res.status(500).json({message:'Server error'});
         }
-    });
-};
+    };
 //#endregion
 
 module.exports = { Userdetail, Userfollow, Userunfollow, Usereditdetial, Usertweets, Userprofilepic };

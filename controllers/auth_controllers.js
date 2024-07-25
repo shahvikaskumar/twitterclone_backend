@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const usermodel = mongoose.model('user');
 const jwt = require('jsonwebtoken');
 const bcryptjs = require('bcryptjs');
-const { JWT_SECRET, MONGODB_URL } = require('../Utility/config');
+const { JWT_SECRET} = require('../Utility/config');
 
 
 //#region Auth Register api
