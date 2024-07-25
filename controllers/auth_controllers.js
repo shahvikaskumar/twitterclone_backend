@@ -2,13 +2,13 @@ const mongoose = require("mongoose");
 const usermodel = mongoose.model('user');
 const jwt = require('jsonwebtoken');
 const bcryptjs = require('bcryptjs');
-const { JWT_SECRET } = require('../Utility/config');
+const { JWT_SECRET, MONGODB_URL } = require('../Utility/config');
 
 
 //#region Auth Register api
 const Authregister = async (req, res) => {
     const { fname, email, uname, password } = req.body;
-
+    
     if (!fname || !email || !uname || !password) {
         return res.status(400).json({ error: "One or more fields are empty" });
     }

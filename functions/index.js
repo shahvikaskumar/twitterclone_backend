@@ -6,8 +6,6 @@ const authroutes = require('../routes/auth_route');
 const userroutes = require('../routes/user_route');
 const tweetroutes = require('../routes/tweet_route');
 
-
-
 const app = express();
 const port = 5000;
 
