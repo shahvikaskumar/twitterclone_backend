@@ -43,9 +43,24 @@ const userschema = new mongoose.Schema({
 
     following:{
         type:[String]
-    }
+    },
 
+    vtoken:{
+        type:String,
+    },
 
+    vstatus:{
+        type:String,
+    },
+
+    rptoken:{
+        type:String,
+    },
+
+    rpexpires:{
+        type:Date,
+    },
+    
 },{timestamps:true});
 
 
