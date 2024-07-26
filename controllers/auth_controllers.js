@@ -35,7 +35,7 @@ const Authregister = async (req, res) => {
         const emailhtml = `<p>Hello ${fname},</p><p>Please verify your email by clicking the link: <a href="${verificationurl}">Verify Email</a></p>`;
         await Sendmail(email , 'Email Verification', emailtext,emailhtml);
 
-        const newuser = new usermodel({ name: fname, email: email, username: uname, password: hashedpassword });
+        const newuser = new usermodel({ name: fname, email: email, username: uname, password: hashedpassword ,vtoken:vtoken,vstatus:false});
         await newuser.save();
 
         res.status(201).json({ success: "Registration successfully." });
