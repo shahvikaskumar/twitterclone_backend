@@ -1,52 +1,63 @@
 const mongoose = require("mongoose");
-const tweetmodel= mongoose.model('tweet');
+const tweetmodel = mongoose.model('tweet');
+const { Cname, Capikey, Capisecret } = require("../Utility/config");
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+    cloud_name: Cname,
+    api_key: Capikey,
+    api_secret: Capisecret
+});
+
 
 //#region Tweet Post
-const Tweetpost = async (req,res) =>{
-    const{userid,content,image} = req.body;
+const Tweetpost = async (req, res) => {
+    try {
+        const { userid, content } = req.body;
+        const imageurl = req.file ? req.file.path : '';
+        const imagepath = req.file ? req.file.filename : '';
 
-    if(!userid || !content){
-        return res.status(400).json({error:"The content fields is empty"});
-    };
+        if (!userid || !content) {
+            return res.status(400).json({ error: "The content fields is empty" });
+        };
 
-    try{
-        const newtweet = new tweetmodel({content:content, tweetedby:userid, image:image});
+        const newtweet = new tweetmodel({ content: content, tweetedby: userid, imageurl: imageurl, imagepath: imagepath });
         await newtweet.save();
-        res.status(201).json({success:"Tweet Succesfully."});
+        res.status(201).json({ success: "Tweet Succesfully.", tweet: newtweet });
     }
-    catch(err){
+    catch (err) {
         console.error(err);
-        res.status(500).json({error:"An error occurred during the tweet process."});
+        res.status(500).json({ error: "An error occurred during the tweet process." });
     }
 };
 
 //#endregion
 
 //#region Tweet Like
-const Tweetlike = async (req,res) => {
-    try{
-        
+const Tweetlike = async (req, res) => {
+    try {
+
         const tweetid = req.params.id;
-        const userid=req.body.userid;
+        const userid = req.body.userid;
 
-        let tweet=await tweetmodel.findById(tweetid);
-        if(!tweet){
-            return res.status(404).json({message:"Tweet not found"});
+        const tweet = await tweetmodel.findById(tweetid);
+        if (!tweet) {
+            return res.status(404).json({ success: "Tweet not found" });
         }
 
-        if(tweetmodel.likes.includes(userid)){
-            return res.status(400).json({message:"Tweet already liked by this user."});
+        if (tweet.likes.includes(userid)) {
+             return res.status(400).json({ success: "Tweet already liked by this user." });
         }
 
-        tweetmodel.likes.push(userid);
+        tweet.likes.push(userid);
 
-        await tweetmodel.save();
+        await tweet.save();
 
-        return res.status(200).json({message:"Tweet liked successfully.",tweet});
+        res.status(200).json({ success: "Tweet liked successfully.", tweet:tweet });
     }
-    catch (error){
+    catch (error) {
         console.error(error);
-        return res.status(500).json({message:"Server error"});
+        return res.status(500).json({ message: "Server error" });
     }
 };
 //#endregion
@@ -54,56 +65,57 @@ const Tweetlike = async (req,res) => {
 //#region Tweet dislike
 const Tweetdislike = async (req, res) => {
 
-    try{
+    try {
         const tweetid = req.params.id;
         const userid = req.body.userid;
 
         let tweet = await tweetmodel.findById(tweetid);
 
-        if(!tweet){
-            return res.status(404).json({message:'Tweet not found'});
+        if (!tweet) {
+            return res.status(404).json({ success: 'Tweet not found' });
         }
 
-        if(!tweet.likes.includes(userid)){
-            return res.status(400).json({message:'Tweet not liked by this user.'});
+        if (!tweet.likes.includes(userid)) {
+            return res.status(400).json({ success: 'Tweet not liked by this user.' });
         }
 
-        tweetmodel.likes = tweetmodel.likes.filter(id => id.toDtring() !== userid.toString());
+        tweet.likes = tweet.likes.filter(id => id.toString() !== userid.toString());
 
-        await tweetmodel.save();
+        await tweet.save();
 
-        return res.status(200).json({messge:'Tweet disliked successfully', tweet});
+        return res.status(200).json({ success: 'Tweet disliked successfully', tweet });
     }
-    catch (error){
+    catch (error) {
         console.error(error);
-        return res.status(500).json({message:"Server error"});
+        return res.status(500).json({ error: "Server error" });
     }
 
 };
 //#endregion
 
 //#region Tweet Reply
-const Tweetreply = async (req,res) => {
+const Tweetreply = async (req, res) => {
 
-    try{
-        const tweetid = req.param.id;
-        const {content} = req.body;
-        const userid = req.user._id;
+    try {
+        const tweetid = req.params.id;
+        const { content, userid} = req.body;
+        
 
-        if(!content){
-            return res.status(400).json({message:'content is required'});
+        if (!content) {
+            return res.status(400).json({ success: 'content is required' });
         }
 
-        let parenttweet = await tweetmodel.findById(tweetid);
+        
+        const parenttweet = await tweetmodel.findById(tweetid);
 
-        if(!parenttweet){
-            return res.status(404).json({message:'Parent tweet not found'});
+        if (!parenttweet) {
+            return res.status(404).json({ success: 'Parent tweet not found' });
         }
 
         const replytweet = new tweetmodel({
-            content:content,
-            tweetedby:userid
-            
+            content: content,
+            tweetedby: userid
+
         });
 
         await replytweet.save();
@@ -112,91 +124,117 @@ const Tweetreply = async (req,res) => {
 
         await parenttweet.save();
 
-        return res.status(201).json({message:'Reply posted successfully.', reply:replytweet});
+        return res.status(201).json({ success: 'Reply posted successfully.', reply: replytweet });
     }
-    catch(error){
+    catch (error) {
         console.error(error);
-        return res.status(500).json({message:'Server error'});
+        return res.status(500).json({ error: 'Server error' });
     }
 };
 //#endregion
 
 //#region single Tweet Detail 
-const Tweetdetail = async (req,res) => {
+const Tweetdetail = async (req, res) => {
 
-    try{
-        const tweetid=req.param.id;
-
-        let tweet = await tweetmodel.findById(tweetid)
-            .populate('username','-password')
+    try {
+        const tweetid = req.params.id;
+        
+        const tweet = await tweetmodel.find({_id:tweetid})
+            .populate('tweetedby', '_id name username email following followers')
             .populate({
-                path:'replies',
-                populate:{path:'username', select:'-password'}                
+                path: 'replies',
+                populate: {
+                    path: 'tweetedby',
+                    select: '-password -vtoken -vstatus -rptoken -rpexpires'
+                }
             });
 
-        if(!tweet){
-            return res.status(404).json({message:'Tweet not found.'});
+
+        if (!tweet) {
+            res.status(404).json({ message: 'Tweet not found.' });
         }
 
-        return res.status(200).json({tweet});       
-            
+        res.status(200).json({ tweet });
+
     }
-    catch(error){
+    catch (error) {
         console.error(error);
-        return res.status(500).json({message:'Server error'});
+        return res.status(500).json({ message: 'Server error' });
     }
 };
 //#endregion
 
 //#region All tweet Details
-const Alltweetdetail = async (req,res) => {
-    try{
+const Alltweetdetail = async (req, res) => {
+    try {
 
-        let tweets = await tweetmodel.find({})
-            .populate('tweetedby','-password')
+        const tweets = await tweetmodel.find({})
+            .populate('tweetedby', '_id name username email following followers')
             .populate({
-                path:'replies',
-                populate:{
-                    path:'tweetedby',
-                    select:'-password'}
-                })
-                .sort({createdAt:-1});
-        
-        return res.status(200).json({tweets});
-             
+                path: 'replies',
+                populate: {
+                    path: 'tweetedby',
+                    select: '_id name username email following followers'
+                }
+            })
+            .sort({ createdAt: -1 });
+
+        if (!tweets) {
+            res.status(404).json({ success: 'Tweets not found' });
+        }
+
+        const tweetIdsInReplies = new Set();
+
+        // Collect tweet IDs that are included in replies
+        tweets.forEach(tweet => {
+            tweet.replies.forEach(reply => {
+                tweetIdsInReplies.add(reply._id.toString());
+            });
+        });
+
+        // Filter out tweets that are included in any tweet replies
+        const filteredTweets = tweets.filter(tweet => !tweetIdsInReplies.has(tweet._id.toString()));
+
+        res.status(200).json({ tweets: filteredTweets });
+
     }
-    catch (error){
+    catch (error) {
         console.error(error);
-        return res.status(500).json({message:'Server error.'});
+        res.status(500).json({ message: 'Server error.' });
     }
 };
 //#endregion
 
 //#region Tweet Delete
-const Tweetdelete = async (req,res) => {
-    try{
+const Tweetdelete = async (req, res) => {
+    try {
 
         const tweetid = req.params.id;
-        const userid = req.user._id;
+        const {userid }= req.body;
 
-        let tweet = await tweetmodel.findById(tweetid);
+        const tweet = await tweetmodel.findById({_id:tweetid});
 
-        if(!tweet){
-            return res.status(404).json({message:'Tweet not found'});
+
+        if (!tweet) {
+            return res.status(404).json({ message: 'Tweet not found' });
         }
 
-        if(tweet.tweetedby.toString() !== userid.toString()){
-            return res.status(403).json({message:'You are not authorized to delete this tweet'});
+        if (tweet.tweetedby.toString() !== userid.toString()) {
+            return res.status(403).json({ message: 'You are not authorized to delete this tweet' });
         }
 
-        await tweet.remove();
+        if (tweet.imagepath && typeof tweet.imagepath === 'string' && tweet.imagepath.trim() !== '') {
+            await cloudinary.uploader.destroy(tweet.imagepath);
+        }
 
-        return res.status(200).json({message:'Tweet deleted successfully.'});
+        await tweet.deleteOne({_id:tweetid});
+
+        res.status(200).json({ message: 'Tweet deleted successfully.' });
 
     }
-    catch (error){
+    catch (error) {
         console.error(error);
-        return res.status(500).json({message:'Server error'});
+        return res.status(500).json({ message: 'Server error' });
     }
 };
 //#endregion
@@ -204,31 +242,35 @@ const Tweetdelete = async (req,res) => {
 //#region Tweet retweet
 const Tweetretweet = async (req, res) => {
 
-    try{
+    try {
         const tweetid = req.params.id;
-        const userid = req.user._id;
+        const {userid} = req.body;
 
-        let tweet = await tweetmodel.findById(tweetid);
+        let tweet = await tweetmodel.findById({_id:tweetid});
 
-        if(!tweet){
-            return res.status(404).json({message:'Tweet not found'});
+        if (!tweet) {
+            return res.status(404).json({ message: 'Tweet not found' });
         }
 
-        if(tweet.retweetby.includes(userid)){
-            return res.status(400).json({message:'Tweet already retweeted by this user.'});
+        if (tweet.retweetby.includes(userid)) {
+            return res.status(400).json({ message: 'Tweet already retweeted by this user.' });
         }
 
         tweet.retweetby.push(userid);
 
         await tweet.save();
 
-        return res.status(200).json({message:'Tweet retweeted successfully.',tweet});
+        return res.status(200).json({ message: 'Tweet retweeted successfully.', tweet });
     }
-    catch (error){
+    catch (error) {
         console.error(error);
-        return res.status(500).json({message:'Server error'});
+        return res.status(500).json({ message: 'Server error' });
     }
 };
 //#endregion
 
-module.exports = {Tweetpost, Tweetlike, Tweetdislike, Tweetreply, Tweetdetail, Alltweetdetail, Tweetdelete, Tweetretweet };
+
+
+
+
+module.exports = { Tweetpost, Tweetlike, Tweetdislike, Tweetreply, Tweetdetail, Alltweetdetail, Tweetdelete, Tweetretweet };
