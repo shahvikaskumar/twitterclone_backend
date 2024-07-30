@@ -23,7 +23,14 @@ const Tweetpost = async (req, res) => {
 
         const newtweet = new tweetmodel({ content: content, tweetedby: userid, imageurl: imageurl, imagepath: imagepath });
         await newtweet.save();
-        res.status(201).json({ success: "Tweet Succesfully.", tweet: newtweet });
+        const populatetweet = await newtweet
+            .populate({
+                path: 'tweetedby',
+                select: '-password -vtoken -vstatus -rptoken -rpexpires' 
+            })
+            .execPopulate();
+
+        res.status(201).json({ success: "Tweet Succesfully.", tweet: populatetweet });
     }
     catch (err) {
         console.error(err);
@@ -140,7 +147,7 @@ const Tweetdetail = async (req, res) => {
         const tweetid = req.params.id;
         
         const tweet = await tweetmodel.find({_id:tweetid})
-            .populate('tweetedby', '_id name username email following followers')
+            .populate('tweetedby', '-password -vtoken -vstatus -rptoken -rpexpires')
             .populate({
                 path: 'replies',
                 populate: {
@@ -169,33 +176,15 @@ const Alltweetdetail = async (req, res) => {
     try {
 
         const tweets = await tweetmodel.find({})
-            .populate('tweetedby', '_id name username email following followers')
-            .populate({
-                path: 'replies',
-                populate: {
-                    path: 'tweetedby',
-                    select: '_id name username email following followers'
-                }
-            })
+            .populate('tweetedby', '-password -vtoken -vstatus -rptoken -rpexpires')
             .sort({ createdAt: -1 });
 
         if (!tweets) {
             res.status(404).json({ success: 'Tweets not found' });
         }
 
-        const tweetIdsInReplies = new Set();
-
-        // Collect tweet IDs that are included in replies
-        tweets.forEach(tweet => {
-            tweet.replies.forEach(reply => {
-                tweetIdsInReplies.add(reply._id.toString());
-            });
-        });
-
-        // Filter out tweets that are included in any tweet replies
-        const filteredTweets = tweets.filter(tweet => !tweetIdsInReplies.has(tweet._id.toString()));
-
-        res.status(200).json({ tweets: filteredTweets });
+        
+        res.status(200).json({ tweets: tweets });
 
     }
     catch (error) {

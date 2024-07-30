@@ -180,7 +180,7 @@ const Usertweets = async (req,res) => {
 
         // Find tweets by user ID
         const tweets = await tweetmodel.find({tweetedby:userid})
-            .populate('tweetedby','-password -vtoken -vstatus -rptoken -rpexpires');
+            .populate('tweetedby','-password -vtoken -vstatus -rptoken -rpexpires').sort({ createdAt: -1 });;
 
         if(!tweets){
             return res.status(404).json({success:'No tweets found for this user'});
