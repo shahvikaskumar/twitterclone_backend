@@ -27,8 +27,8 @@ const Tweetpost = async (req, res) => {
             .populate({
                 path: 'tweetedby',
                 select: '-password -vtoken -vstatus -rptoken -rpexpires' 
-            })
-            .execPopulate();
+            });
+            
 
         res.status(201).json({ success: "Tweet Succesfully.", tweet: populatetweet });
     }
