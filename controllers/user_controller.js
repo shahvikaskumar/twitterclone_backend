@@ -141,16 +141,10 @@ const Userunfollow = async (req,res) => {
 //#region Edit user detail
 const Usereditdetial = async (req,res) => {
     try{
-        const userid = req.params.id;
-        const loggedinuserid = req.body.userid;
+        const userid = req.params.id;        
         const {name, dateofbirth, location} = req.body;
 
-
-        // Check if the user is trying to edit someone else's profile
-        if(userid !== loggedinuserid.toString()){
-            return res.status(403).json({success:'You can not edit other user\'s details'});
-        }
-
+        
         // Validate the request body        
         if(!name && !dateofbirth && !location){
             return res.status(400).json({success:'Please provide name, date of birth, or location to update'});
