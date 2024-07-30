@@ -205,17 +205,10 @@ const Usertweets = async (req,res) => {
 const Userprofilepic = async (req,res) => {
     
         try{
-            const userid = req.params.id;
-            const loggedinuserid = req.body.userid;
+            const userid = req.params.id;            
             const profile_picurl = req.file ? req.file.path : '';
             const profile_picpath = req.file ? req.file.filename : '';
-
-
-            // Check if the user is trying to upload for someone else
-            if(userid !== loggedinuserid.toString()){
-                return res.status(403).json({message:'You cannot upload profile picture for another user'});
-            }
-
+            
             // Find the user by ID
             const user = await usermodel.findById(userid).select('-password -vtoken -vstatus -rptoken -rpexpires');  
             if(!user){
@@ -224,7 +217,7 @@ const Userprofilepic = async (req,res) => {
 
             if(user.profile_picpath && typeof user.profile_picpath === 'string' && user.profile_picpath.trim() !== '') {
                 await cloudinary.uploader.destroy(user.profile_picpath);
-                }
+            }
 
             // Update the user's profilePic url
             user.profile_picurl = profile_picurl || user.profile_picurl;
