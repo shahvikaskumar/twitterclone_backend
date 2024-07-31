@@ -178,7 +178,7 @@ const Tweetdetail = async (req, res) => {
 const Alltweetdetail = async (req, res) => {
     try {
 
-        const tweets = await tweetmodel.find({})
+        const tweets = await tweetmodel.find({replies:{ $exists:true, $size:0}})
             .populate('tweetedby', '-password -vtoken -vstatus -rptoken -rpexpires')
             .sort({ createdAt: -1 });
 
@@ -187,7 +187,7 @@ const Alltweetdetail = async (req, res) => {
         }
 
         
-        res.status(200).json({ tweets: tweets });
+        res.status(200).json({total: tweets.length , tweets: tweets });
 
     }
     catch (error) {
@@ -214,14 +214,10 @@ const Tweetdelete = async (req, res) => {
         if (tweet.tweetedby.toString() !== userid.toString()) {
             return res.status(403).json({ message: 'You are not authorized to delete this tweet' });
         }
+        
+        await tweet.cascadedelete();
 
-        if (tweet.imagepath && typeof tweet.imagepath === 'string' && tweet.imagepath.trim() !== '') {
-            await cloudinary.uploader.destroy(tweet.imagepath);
-        }
-
-        await tweet.deleteOne({_id:tweetid});
-
-        res.status(200).json({ message: 'Tweet deleted successfully.' });
+        res.status(200).json({ message: 'Tweet and all nested replies deleted successfully.' });
 
     }
     catch (error) {
