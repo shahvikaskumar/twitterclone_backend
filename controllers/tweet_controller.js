@@ -106,24 +106,21 @@ const Tweetreply = async (req, res) => {
     try {
         const tweetid = req.params.id;
         const { content, userid} = req.body;
+        const imageurl = req.file ? req.file.path : '';
+        const imagepath = req.file ? req.file.filename : '';
         
-
-        if (!content) {
-            return res.status(400).json({ success: 'content is required' });
-        }
+        if (!userid || !content) {
+            return res.status(400).json({ error: "The content fields is empty" });
+        };
 
         
         const parenttweet = await tweetmodel.findById(tweetid);
 
         if (!parenttweet) {
-            return res.status(404).json({ success: 'Parent tweet not found' });
+            return res.status(404).json({ error: 'Parent tweet not found' });
         }
 
-        const replytweet = new tweetmodel({
-            content: content,
-            tweetedby: userid
-
-        });
+        const replytweet = new tweetmodel({content: content, tweetedby: userid, imageurl: imageurl, imagepath: imagepath});
 
         await replytweet.save();
 

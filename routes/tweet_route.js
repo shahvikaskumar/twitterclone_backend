@@ -5,10 +5,10 @@ const { Tweetpost, Tweetlike, Tweetdislike, Tweetreply, Tweetdetail, Alltweetdet
 const upload = require("../Utility/multer_config");
 
 
-router.post('/tweet', upload, requireauth, Tweetpost);
+router.post('/tweet',requireauth, upload, Tweetpost);
 router.post('/tweet/:id/like', requireauth, Tweetlike);
 router.post('/tweet/:id/dislike', requireauth, Tweetdislike);
-router.post('/tweet/:id/reply', requireauth, Tweetreply);
+router.post('/tweet/:id/reply', requireauth, upload, Tweetreply);
 router.get('/tweet/:id', requireauth, Tweetdetail);
 router.get('/tweet', requireauth, Alltweetdetail);
 router.delete('/tweet/:id', requireauth, Tweetdelete);
