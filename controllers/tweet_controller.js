@@ -131,7 +131,13 @@ const Tweetreply = async (req, res) => {
 
         await parenttweet.save();
 
-        return res.status(201).json({ success: 'Reply posted successfully.', reply: replytweet });
+        const populatetweet = await parenttweet
+            .populate({
+                path: 'tweetedby',
+                select: '-password -vtoken -vstatus -rptoken -rpexpires' 
+            });
+
+        res.status(201).json({ success: 'Reply posted successfully.', tweet:populatetweet  });
     }
     catch (error) {
         console.error(error);
