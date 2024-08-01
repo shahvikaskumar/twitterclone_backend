@@ -184,6 +184,10 @@ const Alltweetdetail = async (req, res) => {
             _id: { $nin: repliedTweetIds }
         })
             .populate('tweetedby', '-password -vtoken -vstatus -rptoken -rpexpires')
+            .populate({
+                path:'retweetby',
+                select:'-password -vtoken -vstatus -rptoken -rpexpires'
+            })
             .sort({ createdAt: -1 });
 
         if (!tweets) {
@@ -247,11 +251,17 @@ const Tweetretweet = async (req, res) => {
             return res.status(400).json({ error: 'Tweet already retweeted by this user.' });
         }
 
-        tweet.retweetby.push(userid);
+        tweet.retweetby.push({user:userid});
 
         await tweet.save();
 
-        return res.status(200).json({ success: 'Tweet retweeted successfully.', tweet });
+        const retweet = tweet.populate('tweetedby', '-password -vtoken -vstatus -rptoken -rpexpires')
+            .populate({
+                path:'retweetby',
+                select:'-password -vtoken -vstatus -rptoken -rpexpires'
+            })
+
+        return res.status(200).json({ success: 'Tweet retweeted successfully.', tweet:retweet });
     }
     catch (error) {
         console.error(error);

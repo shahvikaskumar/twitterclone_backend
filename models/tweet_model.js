@@ -28,8 +28,16 @@ const tweetschema = new mongoose.Schema({
     }],
 
     retweetby: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'user',
+        user:{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'user',
+        },
+
+        retweetdate:{
+            type:Date,
+            default:Date.now
+        },
+        
     }],
 
     imageurl: {
