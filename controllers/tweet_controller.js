@@ -178,21 +178,25 @@ const Tweetdetail = async (req, res) => {
 const Alltweetdetail = async (req, res) => {
     try {
 
-        const tweets = await tweetmodel.find({replies:{ $exists:true, $size:0}})
+        const repliedTweetIds = await tweetmodel.distinct('replies');
+
+        const tweets = await tweetmodel.find({
+            _id: { $nin: repliedTweetIds }
+        })
             .populate('tweetedby', '-password -vtoken -vstatus -rptoken -rpexpires')
             .sort({ createdAt: -1 });
 
         if (!tweets) {
-            res.status(404).json({ success: 'Tweets not found' });
+            res.status(404).json({ error: 'Tweets not found' });
         }
 
         
-        res.status(200).json({success:'All' , tweets: tweets });
+        res.status(200).json({success:'All tweet received.' , tweets: tweets });
 
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error.' });
+        res.status(500).json({ error: 'Server error.' });
     }
 };
 //#endregion
@@ -207,11 +211,11 @@ const Tweetdelete = async (req, res) => {
         const tweet = await tweetmodel.findById({_id:tweetid});
 
         if (!tweet) {
-            return res.status(404).json({ success: 'Tweet not found' });
+            return res.status(404).json({ error: 'Tweet not found' });
         }
 
         if (tweet.tweetedby.toString() !== userid.toString()) {
-            return res.status(403).json({ success: 'You are not authorized to delete this tweet' });
+            return res.status(403).json({ error: 'You are not authorized to delete this tweet' });
         }
         
         await tweet.cascadedelete();
@@ -221,7 +225,7 @@ const Tweetdelete = async (req, res) => {
     }
     catch (error) {
         console.error(error);
-        return res.status(500).json({ message: 'Server error' });
+        return res.status(500).json({ error: 'Server error' });
     }
 };
 //#endregion
