@@ -185,7 +185,7 @@ const Alltweetdetail = async (req, res) => {
         })
             .populate('tweetedby', '-password -vtoken -vstatus -rptoken -rpexpires')
             .populate({
-                path:'retweetby',
+                path:'retweetby.user',
                 select:'-password -vtoken -vstatus -rptoken -rpexpires'
             })
             .sort({ createdAt: -1 });
@@ -247,21 +247,25 @@ const Tweetretweet = async (req, res) => {
             return res.status(404).json({ error: 'Tweet not found' });
         }
 
-        if (tweet.retweetby.includes(userid)) {
-            return res.status(400).json({ error: 'Tweet already retweeted by this user.' });
+        if (tweet.retweetby.some(retweet => retweet.user.toString() === userid)) {
+            return res.status(400).json({ error: 'Tweet already retweeted by you.' });
         }
 
         tweet.retweetby.push({user:userid});
 
         await tweet.save();
 
-        const retweet = tweet.populate('tweetedby', '-password -vtoken -vstatus -rptoken -rpexpires')
-            .populate({
-                path:'retweetby',
-                select:'-password -vtoken -vstatus -rptoken -rpexpires'
-            })
+        tweet = await tweetmodel.findById(tweetid)
+        .populate({
+            path: 'tweetedby',
+            select: '-password -vtoken -vstatus -rptoken -rpexpires'
+        })
+        .populate({
+            path: 'retweetby.user',
+            select: '-password -vtoken -vstatus -rptoken -rpexpires'
+        });
 
-        return res.status(200).json({ success: 'Tweet retweeted successfully.', tweet:retweet });
+        return res.status(200).json({ success: 'Tweet retweeted successfully.', tweet:tweet });
     }
     catch (error) {
         console.error(error);
