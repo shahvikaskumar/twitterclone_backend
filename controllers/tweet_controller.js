@@ -49,11 +49,11 @@ const Tweetlike = async (req, res) => {
 
         const tweet = await tweetmodel.findById(tweetid);
         if (!tweet) {
-            return res.status(404).json({ success: "Tweet not found" });
+            return res.status(404).json({ error: "Tweet not found" });
         }
 
         if (tweet.likes.includes(userid)) {
-             return res.status(400).json({ success: "Tweet already liked by this user." });
+             return res.status(400).json({ error: "Tweet already liked by this user." });
         }
 
         tweet.likes.push(userid);
@@ -64,7 +64,7 @@ const Tweetlike = async (req, res) => {
     }
     catch (error) {
         console.error(error);
-        return res.status(500).json({ message: "Server error" });
+        return res.status(500).json({ error: "Server error" });
     }
 };
 //#endregion
@@ -79,11 +79,11 @@ const Tweetdislike = async (req, res) => {
         let tweet = await tweetmodel.findById(tweetid);
 
         if (!tweet) {
-            return res.status(404).json({ success: 'Tweet not found' });
+            return res.status(404).json({ error: 'Tweet not found' });
         }
 
         if (!tweet.likes.includes(userid)) {
-            return res.status(400).json({ success: 'Tweet not liked by this user.' });
+            return res.status(400).json({ error: 'Tweet not liked by this user.' });
         }
 
         tweet.likes = tweet.likes.filter(id => id.toString() !== userid.toString());
@@ -161,15 +161,15 @@ const Tweetdetail = async (req, res) => {
 
 
         if (!tweet) {
-            res.status(404).json({ message: 'Tweet not found.' });
+            res.status(404).json({ error: 'Tweet not found.' });
         }
 
-        res.status(200).json({ tweet });
+        res.status(200).json({success: 'User related tweet received' , tweet: tweet });
 
     }
     catch (error) {
         console.error(error);
-        return res.status(500).json({ message: 'Server error' });
+        return res.status(500).json({ error: 'Server error' });
     }
 };
 //#endregion
@@ -187,7 +187,7 @@ const Alltweetdetail = async (req, res) => {
         }
 
         
-        res.status(200).json({total: tweets.length , tweets: tweets });
+        res.status(200).json({success:'All' , tweets: tweets });
 
     }
     catch (error) {
@@ -236,11 +236,11 @@ const Tweetretweet = async (req, res) => {
         let tweet = await tweetmodel.findById({_id:tweetid});
 
         if (!tweet) {
-            return res.status(404).json({ success: 'Tweet not found' });
+            return res.status(404).json({ error: 'Tweet not found' });
         }
 
         if (tweet.retweetby.includes(userid)) {
-            return res.status(400).json({ success: 'Tweet already retweeted by this user.' });
+            return res.status(400).json({ error: 'Tweet already retweeted by this user.' });
         }
 
         tweet.retweetby.push(userid);
@@ -251,7 +251,7 @@ const Tweetretweet = async (req, res) => {
     }
     catch (error) {
         console.error(error);
-        return res.status(500).json({ message: 'Server error' });
+        return res.status(500).json({ error: 'Server error' });
     }
 };
 //#endregion

@@ -23,14 +23,10 @@ const Userdetail = async (req,res) => {
             .populate('followers','-password -vtoken -vstatus -rptoken -rpexpires');
         
         if(!user){
-            return res.status(404).json({success:'User not found'});
-        }
-        
-        // Remove the password field from the user object
-        user = user.toObject();
-        delete user.password;
+            return res.status(404).json({error:'User not found'});
+        }      
 
-        return res.status(200).json({user:user});
+        return res.status(200).json({success:'User data received', user:user});
     }
     catch (error){
         console.error(error);
@@ -47,24 +43,24 @@ const Userfollow = async (req,res) => {
 
         // Check if the user is trying to follow himself
         if(useridtofollow === loggedinuserid.toString()){
-            return res.status(400).json({success:'You cannot follow yourself'});
+            return res.status(400).json({error:'You cannot follow yourself'});
         }
 
         // Find the user to follow by ID
         const usertofollow = await usermodel.findById({_id:useridtofollow}).select('-password -vtoken -vstatus -rptoken -rpexpires');
         if(!usertofollow){
-            return res.status(404).json({success:'User to follow not found.'});
+            return res.status(404).json({error:'User to follow not found.'});
         }
 
         // Find the logged-in user by ID
         const loggedinuser = await usermodel.findById({_id:loggedinuserid}).select('-password -vtoken -vstatus -rptoken -rpexpires');
         if(!loggedinuser){
-            return res.status(404).json({success:'Logged in user not found'});
+            return res.status(404).json({error:'Logged in user not found'});
         }
 
         // Check if the user is already following the other user
         if(loggedinuser.following.includes(useridtofollow)){
-            return res.status(400).json({success:'You are already following this user'});
+            return res.status(400).json({error:'You are already following this user'});
         }
 
         // Add the user to follow's ID to the logged-in user's following array
@@ -94,24 +90,24 @@ const Userunfollow = async (req,res) => {
 
         // Check if the user is trying to unfollow himself
         if(useridtounfollow === loggedinuserid.toString()){
-            return res.status(400).json({success:'You cannot unfollow yourself'});
+            return res.status(400).json({error:'You cannot unfollow yourself'});
         }
 
         // Find the user to unfollow by ID
         const usertounfollow = await usermodel.findById({_id:useridtounfollow}).select('-password -vtoken -vstatus -rptoken -rpexpires');
         if(!usertounfollow){
-            return res.status(404).json({success:'User to unfollow not found'});
+            return res.status(404).json({error:'User to unfollow not found'});
         }
 
         // Find the logged-in user by ID
         const loggedinuser = await usermodel.findById({_id:loggedinuserid}).select('-password -vtoken -vstatus -rptoken -rpexpires');
         if(!loggedinuser){
-            return res.status(404).json({success:'Logged in user not found'});
+            return res.status(404).json({error:'Logged in user not found'});
         }
 
         // Check if the logged-in user is following the user to unfollow
         if(!loggedinuser.following.includes(useridtounfollow)){
-            return res.status(400).json({success:'You are not following this user'});
+            return res.status(400).json({error:'You are not following this user'});
         }
 
         // Remove the user to unfollow's ID from the logged-in user's following array
@@ -147,13 +143,13 @@ const Usereditdetial = async (req,res) => {
         
         // Validate the request body        
         if(!name && !dateofbirth && !location){
-            return res.status(400).json({success:'Please provide name, date of birth, or location to update'});
+            return res.status(400).json({error:'Please provide name, date of birth, or location to update'});
         }
 
         // Find the user by ID
         const user=await usermodel.findById(userid).select('-password -vtoken -vstatus -rptoken -rpexpires');
         if(!user){
-            return res.status(404).json({success:'User not found'});
+            return res.status(404).json({error:'User not found'});
         }
 
         // Update the user's details
@@ -184,7 +180,7 @@ const Usertweets = async (req,res) => {
             .sort({createdAt:-1});
 
         if(!tweets){
-            return res.status(404).json({success:'No tweets found for this user'});
+            return res.status(404).json({error:'No tweets found for this user'});
         }
 
         return res.status(200).json({tweets:tweets});
@@ -207,7 +203,7 @@ const Userprofilepic = async (req,res) => {
             // Find the user by ID
             const user = await usermodel.findById(userid).select('-password -vtoken -vstatus -rptoken -rpexpires');  
             if(!user){
-                return res.status(404).json({message:'User not found'});
+                return res.status(404).json({error:'User not found'});
             }
 
             if(user.profile_picpath && typeof user.profile_picpath === 'string' && user.profile_picpath.trim() !== '') {
@@ -225,7 +221,7 @@ const Userprofilepic = async (req,res) => {
         }
         catch(error) {
             console.error(error);
-            return res.status(500).json({message:'Server error'});
+            return res.status(500).json({error:'Server error'});
         }
     };
 //#endregion
