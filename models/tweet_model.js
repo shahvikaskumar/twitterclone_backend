@@ -55,7 +55,7 @@ const tweetschema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-tweetschema.pre('save', converttime);
+// tweetschema.pre('save', converttime);
 
 tweetschema.methods.cascadedelete = async function() {
     for(const replyid of this.replies){

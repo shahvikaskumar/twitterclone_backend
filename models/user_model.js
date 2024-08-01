@@ -68,6 +68,6 @@ const userschema = new mongoose.Schema({
 },{timestamps:true});
 
 
-userschema.pre('save',converttime);
+// userschema.pre('save',converttime);
 
 mongoose.model('user', userschema);
