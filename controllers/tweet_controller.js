@@ -236,11 +236,11 @@ const Tweetretweet = async (req, res) => {
         let tweet = await tweetmodel.findById({_id:tweetid});
 
         if (!tweet) {
-            return res.status(404).json({ error: 'Tweet not found' });
+            return res.status(404).json({ success: 'Tweet not found' });
         }
 
         if (tweet.retweetby.includes(userid)) {
-            return res.status(400).json({ error: 'Tweet already retweeted by this user.' });
+            return res.status(400).json({ success: 'Tweet already retweeted by this user.' });
         }
 
         tweet.retweetby.push(userid);
