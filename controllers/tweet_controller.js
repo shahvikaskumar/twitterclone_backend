@@ -201,23 +201,22 @@ const Alltweetdetail = async (req, res) => {
 const Tweetdelete = async (req, res) => {
     try {
 
-        const tweetid = req.params.id;
-        const {userid }= req.body;
+        const tweetid = req.params.tid;
+        const userid = req.params.uid;
 
         const tweet = await tweetmodel.findById({_id:tweetid});
 
-
         if (!tweet) {
-            return res.status(404).json({ message: 'Tweet not found' });
+            return res.status(404).json({ success: 'Tweet not found' });
         }
 
         if (tweet.tweetedby.toString() !== userid.toString()) {
-            return res.status(403).json({ message: 'You are not authorized to delete this tweet' });
+            return res.status(403).json({ success: 'You are not authorized to delete this tweet' });
         }
         
         await tweet.cascadedelete();
 
-        res.status(200).json({ message: 'Tweet and all nested replies deleted successfully.' });
+        res.status(200).json({ success: 'Tweet and all nested replies deleted successfully.' , tweet:tweet });
 
     }
     catch (error) {
@@ -237,18 +236,18 @@ const Tweetretweet = async (req, res) => {
         let tweet = await tweetmodel.findById({_id:tweetid});
 
         if (!tweet) {
-            return res.status(404).json({ message: 'Tweet not found' });
+            return res.status(404).json({ error: 'Tweet not found' });
         }
 
         if (tweet.retweetby.includes(userid)) {
-            return res.status(400).json({ message: 'Tweet already retweeted by this user.' });
+            return res.status(400).json({ error: 'Tweet already retweeted by this user.' });
         }
 
         tweet.retweetby.push(userid);
 
         await tweet.save();
 
-        return res.status(200).json({ message: 'Tweet retweeted successfully.', tweet });
+        return res.status(200).json({ success: 'Tweet retweeted successfully.', tweet });
     }
     catch (error) {
         console.error(error);
